@@ -4,13 +4,22 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My initial UML design had four classes: `Owner`, `Pet`, `Task`, and `Scheduler`. `Owner` holds a list of
+`Pet`s and is responsible for aggregating data across them (e.g., returning every task an owner is
+responsible for). `Pet` holds its own list of `Task`s and basic identity info (name, species). `Task` is
+a plain data holder for one care activity (description, time, duration, priority, frequency, completion
+status) plus a couple of small helper methods (`mark_complete`, `overlaps_with`). `Scheduler` was the odd
+one out on purpose: instead of putting scheduling logic *inside* `Owner` or `Pet`, I gave it its own class
+that takes an `Owner` and reads from it, so all of the "smart" behavior (sorting, filtering, conflict
+detection, recurring resets) lives in one place separate from the plain data model.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+The biggest change was splitting "priority" and "frequency" out into their own `Enum` classes (`Priority`,
+`Frequency`) instead of using plain strings on `Task`. Early on I was comparing strings like
+`"high" == "High"` and it was fragile — a typo anywhere would silently break sorting. Enums caught that at
+the class definition level instead, and let me sort by `Priority.HIGH.value` instead of writing a manual
+string-to-number lookup every time I needed to compare priorities.
 
 ---
 
@@ -18,13 +27,21 @@
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers three constraints: task **priority** (High/Medium/Low), a **time budget** in
+minutes (optional — an owner can say "I only have 40 minutes today"), and **time-of-day conflicts**
+between tasks. Priority mattered most because in a real pet-care scenario, a missed medication is a much
+bigger problem than a missed round of enrichment play, so the plan should always surface high-priority
+items first regardless of what order they were entered in.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+`filter_within_time_budget()` uses a greedy algorithm: it walks the priority-sorted task list in order
+and takes a task if it fits in the remaining budget, otherwise it skips it and moves on — it does not try
+to find the *optimal* combination of tasks that maximizes total priority within the budget (that would be
+closer to a knapsack problem). This is a reasonable tradeoff here because the greedy approach is simple,
+fast, and predictable — an owner glancing at a skipped Low-priority task understands immediately why it
+was cut, whereas an optimal-but-opaque solver might skip a High-priority task in favor of two Low-priority
+ones that "pack" better, which would feel wrong to a pet owner even if the math checks out.
 
 ---
 
@@ -32,13 +49,22 @@
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used AI during the design phase to sanity-check my initial four-class breakdown before writing any code,
+and to generate the Mermaid.js class diagram from my brainstormed attributes/methods so I didn't have to
+hand-write Mermaid syntax. During implementation, I used AI to scaffold the class skeletons from the UML
+and to draft the pytest test cases once the core logic existed. The most useful prompts were narrow and
+gave the AI the actual code as context — e.g., "based on my skeletons in pawpal_system.py, how should the
+Scheduler retrieve all tasks from the Owner's pets?" — rather than broad, open-ended prompts, which tended
+to produce generic advice that didn't fit the classes I'd already sketched out.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+One place I did not accept the AI's suggestion as-is was conflict detection. Its first draft only checked
+whether two tasks had the exact same `scheduled_time`, which misses the much more common case of a
+30-minute walk that *overlaps* a task starting partway through it. I verified this by writing a test case
+first — two tasks with a 15-minute overlap but different start times — and running it against the
+suggested implementation, which failed to flag the conflict. I rewrote `overlaps_with()` to compare
+start/end minute ranges instead of exact-time equality, then confirmed the test passed.
 
 ---
 
@@ -46,13 +72,20 @@
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+The two required behaviors — `mark_complete()` changing a task's status, and adding a task increasing a
+pet's task count — plus the four algorithmic behaviors from Phase 4: priority/time sorting order,
+time-budget filtering (including a zero-budget edge case), conflict detection (overlapping, non-overlapping,
+and back-to-back tasks), and recurring-task resets (daily tasks reset, one-off tasks don't). These mattered
+because the sorting/filtering/conflict logic is the actual "smart" part of the system — if it's wrong, the
+app still runs without crashing, but it quietly gives the owner a bad or misleading plan.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I'm fairly confident the core scheduling logic is correct — 21 tests pass, including edge cases like a
+zero-minute time budget and back-to-back tasks that shouldn't be flagged as conflicting. With more time I'd
+add tests for: tasks that span midnight, an owner with zero pets calling `build_daily_plan()`, and a
+three-way conflict (three tasks all overlapping the same time slot) to make sure `find_conflicts()` reports
+all pairs and not just adjacent ones.
 
 ---
 
@@ -60,12 +93,21 @@
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+I'm most satisfied with keeping `Scheduler` separate from `Owner`/`Pet`/`Task`. It made testing much easier
+— I could test the "dumb" data classes and the "smart" scheduling algorithms independently — and it meant
+Phase 3 (connecting to Streamlit) only required wiring `Scheduler` calls to buttons, not rewriting any
+logic to work with the UI.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I'd make the time-budget filtering configurable — right now it's a strict
+greedy cutoff, but a real owner might want to say "always include medications no matter what," which would
+mean some tasks should ignore the time budget entirely.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+The most important thing I learned is that letting AI draft code *before* I'd nailed down the design led to
+worse results than sketching the classes and their responsibilities myself first, then using AI to
+scaffold and fill in from that. When I started with a clear UML and plain-language description of what each
+class was responsible for, the AI's generated code needed far fewer corrections than when I asked it to
+"just build a pet scheduler" from scratch.
