@@ -66,6 +66,23 @@ first — two tasks with a 15-minute overlap but different start times — and r
 suggested implementation, which failed to flag the conflict. I rewrote `overlaps_with()` to compare
 start/end minute ranges instead of exact-time equality, then confirmed the test passed.
 
+A second example was recurrence: my first pass just reset a completed task's `completed` flag back to
+`False` so it "reappeared" the next day. That's simpler, but it silently loses history (you can't tell a
+task happened yesterday) and doesn't actually advance the date. I rejected that approach in favor of
+`Task.next_occurrence()` creating a brand-new `Task` dated `+1 day`/`+1 week`, which keeps the completed
+original as a record and gives the new instance its own identity — closer to how a real calendar app
+handles recurrence.
+
+**c. AI strategy**
+
+The most effective AI-assistant features for this project were inline chat-with-file-context (attaching
+`pawpal_system.py` directly rather than re-describing it in prose) and using separate chat sessions per
+phase — one for design/skeletons, a fresh one for the algorithmic layer, and another for testing. Keeping
+them separate mattered because a single long-running chat started anchoring on earlier, since-changed
+decisions (e.g., still assuming the old "reset the flag" recurrence approach after I'd moved to
+`next_occurrence()`); a clean session forced me to re-state the current design accurately, which caught
+that kind of drift early instead of propagating it into new code.
+
 ---
 
 ## 4. Testing and Verification
@@ -73,19 +90,23 @@ start/end minute ranges instead of exact-time equality, then confirmed the test 
 **a. What you tested**
 
 The two required behaviors — `mark_complete()` changing a task's status, and adding a task increasing a
-pet's task count — plus the four algorithmic behaviors from Phase 4: priority/time sorting order,
-time-budget filtering (including a zero-budget edge case), conflict detection (overlapping, non-overlapping,
-and back-to-back tasks), and recurring-task resets (daily tasks reset, one-off tasks don't). These mattered
-because the sorting/filtering/conflict logic is the actual "smart" part of the system — if it's wrong, the
-app still runs without crashing, but it quietly gives the owner a bad or misleading plan.
+pet's task count — plus the core algorithmic behaviors from Phase 4/5: priority/time sorting order
+(including tasks added deliberately out of order), time-budget filtering (including a zero-budget edge
+case), filtering by pet and by completion status, conflict detection (overlapping, exact-duplicate,
+non-overlapping, back-to-back, cross-pet, and different-date tasks), and recurrence (completing a DAILY
+task creates one dated `+1 day`, WEEKLY creates one dated `+1 week`, ONCE creates nothing). I also tested
+the two stretch features: next-available-slot lookup and JSON save/load round-tripping. These mattered
+because the sorting/filtering/conflict/recurrence logic is the actual "smart" part of the system — if it's
+wrong, the app still runs without crashing, but it quietly gives the owner a bad or misleading plan.
 
 **b. Confidence**
 
-I'm fairly confident the core scheduling logic is correct — 21 tests pass, including edge cases like a
-zero-minute time budget and back-to-back tasks that shouldn't be flagged as conflicting. With more time I'd
-add tests for: tasks that span midnight, an owner with zero pets calling `build_daily_plan()`, and a
-three-way conflict (three tasks all overlapping the same time slot) to make sure `find_conflicts()` reports
-all pairs and not just adjacent ones.
+I'm fairly confident the core scheduling logic is correct — 36 tests pass, including edge cases like a
+zero-minute time budget, back-to-back tasks that shouldn't be flagged as conflicting, and tasks on
+different dates that shouldn't conflict even at the same time-of-day. With more time I'd add tests for:
+tasks that span midnight, an owner with zero pets calling `build_daily_plan()`, and a three-way conflict
+(three tasks all overlapping the same time slot) to make sure `find_conflicts()` reports all pairs and not
+just adjacent ones.
 
 ---
 
@@ -111,3 +132,9 @@ worse results than sketching the classes and their responsibilities myself first
 scaffold and fill in from that. When I started with a clear UML and plain-language description of what each
 class was responsible for, the AI's generated code needed far fewer corrections than when I asked it to
 "just build a pet scheduler" from scratch.
+
+Being the "lead architect" meant my job was never to accept the first working version — it was to decide
+*which* working version was right for this system: greedy time-budget filtering over an optimal-but-opaque
+solver, overlap-based conflict detection over exact-time matching, and new-task recurrence over
+flag-resetting. AI could generate all four options quickly; deciding which one actually served a pet
+owner, and verifying each with a test that would fail if I was wrong, was the part that stayed on me.
