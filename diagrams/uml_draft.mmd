@@ -1,0 +1,40 @@
+%% PawPal+ — Phase 1 initial draft UML
+%% Drafted before implementation, based on the brainstormed classes:
+%% Owner, Pet, Task, Scheduler. Kept simple on purpose (Phase 1 Step 3).
+%% See diagrams/uml_final.mmd (and diagrams/uml.mmd) for the diagram
+%% updated to match the final implementation (Phase 6 Step 2).
+
+classDiagram
+    class Owner {
+        +String name
+        +List~Pet~ pets
+        +add_pet(pet)
+        +all_tasks() List~Task~
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +List~Task~ tasks
+        +add_task(task)
+        +task_count() int
+    }
+
+    class Task {
+        +String description
+        +Time scheduled_time
+        +int duration_minutes
+        +String frequency
+        +bool completed
+        +mark_complete()
+    }
+
+    class Scheduler {
+        +Owner owner
+        +sort_by_time() List~Task~
+        +find_conflicts() List~tuple~
+    }
+
+    Owner "1" --> "*" Pet : has
+    Pet "1" --> "*" Task : has
+    Scheduler --> "1" Owner : reads from
