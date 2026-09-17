@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime, time as dt_time
+from datetime import date, time as dt_time
 
 from pawpal_system import Owner, Pet, Task, Priority, Frequency, Scheduler
 
@@ -106,28 +106,72 @@ if st.session_state.pets:
         )
         st.session_state.pets[task_pet_name].add_task(task)
         st.success(f"Added '{task_title}' for {task_pet_name}.")
+
+    st.markdown("##### Suggest a slot")
+    st.caption("Find the earliest open time today that fits a task of a given length.")
+    slot_duration = st.number_input(
+        "Needed duration (minutes)", min_value=5, max_value=240, value=20, key="slot_duration"
+    )
+    if st.button("Find next available slot"):
+        scheduler = Scheduler(st.session_state.owner)
+        slot = scheduler.find_next_available_slot(
+            duration_minutes=int(slot_duration), for_date=date.today()
+        )
+        if slot:
+            st.success(f"Next open {slot_duration}-minute slot today: **{slot.strftime('%I:%M %p')}**")
+        else:
+            st.warning("No open slot of that length today.")
 else:
     st.info("Add a pet first before adding tasks.")
 
-# Show current tasks across all pets
+# Show current tasks across all pets, with a pet filter (Phase 4 filtering requirement)
 all_tasks = st.session_state.owner.all_tasks() if st.session_state.owner else []
 if all_tasks:
     st.write("Current tasks:")
-    st.table(
-        [
+    filter_choice = st.selectbox(
+        "Filter by pet", ["All pets"] + list(st.session_state.pets.keys())
+    )
+    scheduler = Scheduler(st.session_state.owner)
+    visible_tasks = (
+        all_tasks if filter_choice == "All pets" else scheduler.filter_by_pet(filter_choice)
+    )
+
+    rows = []
+    for t in visible_tasks:
+        pet = st.session_state.owner.find_pet_for_task(t)
+        rows.append(
             {
-                "Pet": next(
-                    p.name for p in st.session_state.pets.values() if t in p.tasks
-                ),
+                "Pet": pet.name if pet else "?",
                 "Task": t.description,
                 "Time": t.scheduled_time.strftime("%I:%M %p"),
                 "Duration (min)": t.duration_minutes,
                 "Priority": str(t.priority),
                 "Frequency": t.frequency.value,
+                "Done": "✅" if t.completed else "—",
             }
-            for t in all_tasks
-        ]
-    )
+        )
+    st.table(rows)
+
+    # Mark a task complete -> triggers automatic next-occurrence creation for
+    # DAILY/WEEKLY tasks (Phase 4 recurrence requirement).
+    incomplete = [t for t in visible_tasks if not t.completed]
+    if incomplete:
+        task_to_complete = st.selectbox(
+            "Mark a task complete",
+            incomplete,
+            format_func=lambda t: f"{t.description} ({t.scheduled_time.strftime('%I:%M %p')})",
+        )
+        if st.button("Mark complete"):
+            scheduler = Scheduler(st.session_state.owner)
+            new_task = scheduler.complete_task(task_to_complete)
+            if new_task:
+                st.success(
+                    f"Completed '{task_to_complete.description}' — next occurrence "
+                    f"created for {new_task.scheduled_date} at "
+                    f"{new_task.scheduled_time.strftime('%I:%M %p')}."
+                )
+            else:
+                st.success(f"Completed '{task_to_complete.description}'.")
 
 st.divider()
 
@@ -152,12 +196,20 @@ if st.button("Generate schedule"):
         st.markdown("### 📋 Today's Plan")
         if not result["plan"]:
             st.info("No tasks to schedule yet.")
-        for task in result["plan"]:
-            pet_name = next(
-                p.name for p in st.session_state.pets.values() if task in p.tasks
-            )
-            st.write(f"**{task.scheduled_time.strftime('%I:%M %p')}** — {task.description} "
-                      f"({task.duration_minutes} min, {task.priority}) — *{pet_name}*")
+        else:
+            plan_rows = []
+            for task in result["plan"]:
+                pet = st.session_state.owner.find_pet_for_task(task)
+                plan_rows.append(
+                    {
+                        "Time": task.scheduled_time.strftime("%I:%M %p"),
+                        "Task": task.description,
+                        "Pet": pet.name if pet else "?",
+                        "Duration (min)": task.duration_minutes,
+                        "Priority": str(task.priority),
+                    }
+                )
+            st.table(plan_rows)
 
         if result["skipped"]:
             st.markdown("### ⏭️ Skipped (ran out of time budget)")
@@ -167,6 +219,9 @@ if st.button("Generate schedule"):
         if result["conflicts"]:
             st.markdown("### ⚠️ Scheduling Conflicts")
             for a, b in result["conflicts"]:
-                st.warning(f"'{a.description}' overlaps with '{b.description}'")
+                st.warning(
+                    f"'{a.description}' overlaps with '{b.description}' "
+                    f"at {a.scheduled_time.strftime('%I:%M %p')} — consider rescheduling one."
+                )
         else:
             st.success("No scheduling conflicts detected.")
