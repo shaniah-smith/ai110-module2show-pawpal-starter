@@ -1,15 +1,62 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
-
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +String name
+        +List~Pet~ pets
+        +add_pet(pet)
+        +all_tasks() List~Task~
+        +find_pet(name) Pet
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +String name
+        +String species
+        +List~Task~ tasks
+        +add_task(task)
+        +task_count() int
+        +incomplete_tasks() List~Task~
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        +String description
+        +Time scheduled_time
+        +int duration_minutes
+        +Priority priority
+        +Frequency frequency
+        +bool completed
+        +int task_id
+        +mark_complete()
+        +mark_incomplete()
+        +overlaps_with(other) bool
+    }
+
+    class Priority {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    class Frequency {
+        <<enumeration>>
+        ONCE
+        DAILY
+        WEEKLY
+    }
+
+    class Scheduler {
+        +Owner owner
+        +get_all_tasks() List~Task~
+        +sort_by_priority_then_time() List~Task~
+        +sort_by_time() List~Task~
+        +filter_within_time_budget(tasks, minutes) tuple
+        +filter_incomplete() List~Task~
+        +find_conflicts() List~tuple~
+        +reset_recurring_tasks() int
+        +build_daily_plan(minutes_available) dict
+    }
+
+    Owner "1" --> "*" Pet : has
+    Pet "1" --> "*" Task : has
+    Task --> Priority : uses
+    Task --> Frequency : uses
+    Scheduler --> "1" Owner : reads from

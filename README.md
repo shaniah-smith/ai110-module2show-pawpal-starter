@@ -38,7 +38,7 @@ terminal (`main.py`, `tests/`), and finally connected to a Streamlit UI (`app.py
 
 ### UML Diagram
 
-See [`diagrams/uml_draft.mmd`](diagrams/uml_draft.mmd) (Mermaid class diagram — paste into
+See [`diagrams/uml.mmd`](diagrams/uml.mmd) (Mermaid class diagram — paste into
 [Mermaid Live Editor](https://mermaid.live/) or preview it in VS Code with a Mermaid extension).
 
 `Owner` has many `Pet`s, each `Pet` has many `Task`s, and `Scheduler` reads from (but does not own) an
