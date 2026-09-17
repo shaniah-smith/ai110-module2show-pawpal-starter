@@ -1,5 +1,6 @@
 __pycache__/
+*.pyc
 .venv/
-.venv_new/
 .pytest_cache/
-.DS_Store
+.streamlit/
+data.json
