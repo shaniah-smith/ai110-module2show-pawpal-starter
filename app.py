@@ -9,8 +9,8 @@ st.title("🐾 PawPal+")
 
 st.markdown(
     """
-PawPal+ helps a pet owner plan care tasks for their pets — feedings, walks,
-medications, and appointments — and builds a prioritized daily schedule.
+PawPal+ helps a pet owner plan care tasks for their pets (feedings, walks,
+medications, and appointments) and builds a prioritized daily schedule.
 """
 )
 
@@ -30,7 +30,7 @@ st.divider()
 #
 # Streamlit reruns this whole script top-to-bottom on every interaction, so
 # the Owner object (and everything inside it) is stored in st.session_state
-# instead of a plain local variable — otherwise it would be recreated empty
+# instead of a plain local variable, otherwise it would be recreated empty
 # every time a button is clicked.
 # ---------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ if all_tasks:
                 "Duration (min)": t.duration_minutes,
                 "Priority": str(t.priority),
                 "Frequency": t.frequency.value,
-                "Done": "✅" if t.completed else "—",
+                "Done": "✅" if t.completed else "no",
             }
         )
     st.table(rows)
@@ -166,7 +166,7 @@ if all_tasks:
             new_task = scheduler.complete_task(task_to_complete)
             if new_task:
                 st.success(
-                    f"Completed '{task_to_complete.description}' — next occurrence "
+                    f"Completed '{task_to_complete.description}', next occurrence "
                     f"created for {new_task.scheduled_date} at "
                     f"{new_task.scheduled_time.strftime('%I:%M %p')}."
                 )
@@ -179,7 +179,7 @@ st.divider()
 
 st.subheader("4. Build Schedule")
 minutes_available = st.number_input(
-    "Time budget for today (minutes, optional — leave at 0 for no limit)",
+    "Time budget for today (minutes, optional: leave at 0 for no limit)",
     min_value=0,
     max_value=1000,
     value=0,
@@ -221,7 +221,7 @@ if st.button("Generate schedule"):
             for a, b in result["conflicts"]:
                 st.warning(
                     f"'{a.description}' overlaps with '{b.description}' "
-                    f"at {a.scheduled_time.strftime('%I:%M %p')} — consider rescheduling one."
+                    f"at {a.scheduled_time.strftime('%I:%M %p')}, consider rescheduling one."
                 )
         else:
             st.success("No scheduling conflicts detected.")

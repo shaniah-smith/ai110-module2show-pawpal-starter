@@ -13,7 +13,7 @@
 For Challenge 1 (Advanced Algorithmic Capability), I asked the agent to add a third algorithm beyond the
 base sorting/filtering/conflict-detection requirements: a "find the next available time slot" function
 that, given a desired task duration, scans an owner's existing tasks for a day and returns the earliest
-open window long enough to fit a new task — something a pet owner could use when deciding what time to
+open window long enough to fit a new task, something a pet owner could use when deciding what time to
 schedule a new vet appointment or walk.
 
 **What did the agent do?**
@@ -27,7 +27,7 @@ booked day (returns `None`), and an empty day (returns `day_start`).
 
 **What did you have to verify or fix manually?**
 
-The agent's first pytest case for "finds gap between tasks" had the wrong expected answer — it asserted
+The agent's first pytest case for "finds gap between tasks" had the wrong expected answer: it asserted
 the slot would be found right after an 8:00–8:30 task, but with a 6:00 AM day-start and nothing scheduled
 before 8:00, the correct earliest slot is actually 6:00 AM (a 2-hour-wide gap that already fits the
 requested duration). I caught this by running the test and manually tracing the algorithm by hand rather
@@ -38,7 +38,7 @@ first task (back-to-back tasks from day-start through lunch) so the assertion te
 
 ## Prompt Comparison (SF11)
 
-*(Not attempted — Challenge 5 requires running the same prompt through two different AI models/tools and
+*(Not attempted. Challenge 5 requires running the same prompt through two different AI models/tools and
 comparing their output. I didn't have access to a second model in this environment to do an honest,
 non-fabricated comparison, so I left this section blank rather than invent output I never actually got
 from a second model.)*

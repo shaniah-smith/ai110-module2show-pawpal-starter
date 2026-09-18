@@ -11,9 +11,9 @@ This module has no UI code in it on purpose (see Phase 2 / CLI-first workflow).
 `main.py` exercises it from the terminal, and `app.py` calls into it from Streamlit.
 
 Stretch features implemented (see ai_interactions.md and README for details):
-    - Challenge 1: Scheduler.find_next_available_slot() — a third algorithmic
+    - Challenge 1: Scheduler.find_next_available_slot(), a third algorithmic
       capability beyond sorting/filtering/conflicts.
-    - Challenge 2: save_to_json() / load_from_json() — data persistence.
+    - Challenge 2: save_to_json() / load_from_json(), data persistence.
     - Challenge 3: Priority-based scheduling (Priority enum + sort_by_priority_then_time).
 """
 

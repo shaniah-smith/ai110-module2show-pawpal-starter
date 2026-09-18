@@ -146,7 +146,7 @@ def print_plan(owner: Owner, minutes_available: int | None = None) -> None:
     else:
         for task in result["plan"]:
             pet = owner.find_pet_for_task(task)
-            print(f"  {PRIORITY_EMOJI[task.priority]} {task}  — {pet.name if pet else '?'}")
+            print(f"  {PRIORITY_EMOJI[task.priority]} {task}  ({pet.name if pet else '?'})")
 
     if result["skipped"]:
         print("\n⏭️  Skipped (ran out of time budget):")

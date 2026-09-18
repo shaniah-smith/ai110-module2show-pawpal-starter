@@ -15,22 +15,22 @@ terminal (`main.py`, `tests/`), and finally connected to a Streamlit UI (`app.py
 
 ## Features
 
-- **Owner / Pet / Task modeling** — represent an owner with multiple pets, each with its own list of
+- **Owner / Pet / Task modeling:** represent an owner with multiple pets, each with its own list of
   care tasks (description, time, duration, priority, recurrence).
-- **Priority-based scheduling** — `Scheduler.sort_by_priority_then_time()` sorts tasks High → Low, then
+- **Priority-based scheduling:** `Scheduler.sort_by_priority_then_time()` sorts tasks High to Low, then
   chronologically within a priority tier, so urgent care never gets buried.
-- **Time-budget filtering** — `Scheduler.filter_within_time_budget()` greedily fits as many
+- **Time-budget filtering:** `Scheduler.filter_within_time_budget()` greedily fits as many
   high-priority tasks as possible into however many minutes the owner has today.
-- **Filter by pet or completion status** — `Scheduler.filter_by_pet()` and `Scheduler.filter_incomplete()`.
-- **Conflict detection** — `Scheduler.find_conflicts()` flags any two tasks (same pet or different pets)
+- **Filter by pet or completion status:** `Scheduler.filter_by_pet()` and `Scheduler.filter_incomplete()`.
+- **Conflict detection:** `Scheduler.find_conflicts()` flags any two tasks (same pet or different pets)
   whose time windows overlap, including exact-duplicate times, without crashing the app.
-- **Recurring tasks that self-schedule** — `Scheduler.complete_task()` marks a task done and, if it's
+- **Recurring tasks that self-schedule:** `Scheduler.complete_task()` marks a task done and, if it's
   DAILY or WEEKLY, automatically creates the next occurrence (`today + 1 day` / `+ 1 week`) for that pet.
-- **Next-available-slot finder** *(stretch, Challenge 1)* — `Scheduler.find_next_available_slot()` scans
+- **Next-available-slot finder** *(stretch, Challenge 1)*: `Scheduler.find_next_available_slot()` scans
   a day's existing tasks and returns the earliest open window long enough for a new task.
-- **JSON persistence** *(stretch, Challenge 2)* — `save_to_json()` / `load_from_json()` let an owner's
+- **JSON persistence** *(stretch, Challenge 2)*: `save_to_json()` / `load_from_json()` let an owner's
   pets and tasks survive between runs.
-- **Formatted CLI output** *(stretch, Challenge 4)* — `main.py` renders the schedule as a table
+- **Formatted CLI output** *(stretch, Challenge 4)*: `main.py` renders the schedule as a table
   (via `tabulate`) with priority emoji, instead of a raw object dump.
 
 ## System Design
@@ -46,15 +46,15 @@ terminal (`main.py`, `tests/`), and finally connected to a Streamlit UI (`app.py
 
 ### UML Diagram
 
-- [`diagrams/uml_draft.mmd`](diagrams/uml_draft.mmd) — the initial Phase 1 draft (four classes, minimal
+- [`diagrams/uml_draft.mmd`](diagrams/uml_draft.mmd): the initial Phase 1 draft (four classes, minimal
   attributes/methods), sketched before any implementation.
-- [`diagrams/uml_final.mmd`](diagrams/uml_final.mmd) / [`diagrams/uml.mmd`](diagrams/uml.mmd) — the
+- [`diagrams/uml_final.mmd`](diagrams/uml_final.mmd) / [`diagrams/uml.mmd`](diagrams/uml.mmd): the
   final diagram, updated in Phase 6 to match `pawpal_system.py` exactly (enums, `scheduled_date`,
   `next_occurrence()`, persistence methods, and the full `Scheduler` algorithmic layer).
 
 Paste any of these into [Mermaid Live Editor](https://mermaid.live/) or preview them in VS Code with a
 Mermaid extension. `Owner` has many `Pet`s, each `Pet` has many `Task`s, and `Scheduler` reads from (but
-does not own) an `Owner` — keeping scheduling *logic* separate from the *data model*.
+does not own) an `Owner`, keeping scheduling *logic* separate from the *data model*.
 
 ## Getting started
 
@@ -119,7 +119,7 @@ Reloaded owner 'Jordan' with 2 pets and 7 total tasks
 ============================================================
 ```
 
-Note the conflict warning: Biscuit's 30-minute walk (8:00–8:30 AM) overlaps Mochi's 8:00 AM feeding —
+Note the conflict warning: Biscuit's 30-minute walk (8:00 to 8:30 AM) overlaps Mochi's 8:00 AM feeding,
 exactly the kind of cross-pet scheduling collision `Scheduler.find_conflicts()` is designed to catch.
 The recurring-task demo then marks that same walk complete and shows `Scheduler.complete_task()`
 auto-creating tomorrow's walk for Biscuit, rather than just resetting a flag.
@@ -198,16 +198,16 @@ tests/test_pawpal.py::TestBuildDailyPlan::test_build_daily_plan_only_includes_ma
 
 36 tests pass across every core and stretch behavior, including several edge cases (zero-minute budget,
 back-to-back tasks, different dates, fully-booked days). I'd call it 4 rather than 5 stars because the
-edge cases I'd still want to add — see reflection.md section 4b — involve less common scenarios (tasks
+edge cases I'd still want to add (see reflection.md section 4b) involve less common scenarios (tasks
 spanning midnight, three-way conflicts) that the current suite doesn't cover yet.
 
 ## 📐 Smarter Scheduling
 
 | Feature | Method(s) | Notes |
 |---|---|---|
-| Task sorting | `Scheduler.sort_by_priority_then_time()`, `Scheduler.sort_by_time()` | Primary plan ordering is by priority (High → Low), then by time within the same priority. A pure chronological sort is also available. |
+| Task sorting | `Scheduler.sort_by_priority_then_time()`, `Scheduler.sort_by_time()` | Primary plan ordering is by priority (High to Low), then by time within the same priority. A pure chronological sort is also available. |
 | Filtering | `Scheduler.filter_within_time_budget()`, `Scheduler.filter_incomplete()`, `Scheduler.filter_by_pet()`, `Scheduler.filter_by_date()` | Greedily selects tasks that fit inside an owner's available minutes (highest priority first); filters by completion status, by a specific pet's name, or by date. |
-| Conflict handling | `Task.overlaps_with()`, `Scheduler.find_conflicts()` | Compares every pair of same-date tasks' start/end minute-of-day windows (not just exact-time matches) and returns a lightweight list of conflicting pairs — same pet or different pets — instead of crashing. |
+| Conflict handling | `Task.overlaps_with()`, `Scheduler.find_conflicts()` | Compares every pair of same-date tasks' start/end minute-of-day windows (not just exact-time matches) and returns a lightweight list of conflicting pairs, whether from the same pet or different pets, instead of crashing. |
 | Recurring tasks | `Task.frequency` (`ONCE`/`DAILY`/`WEEKLY`), `Task.next_occurrence()`, `Scheduler.complete_task()` | Completing a DAILY or WEEKLY task automatically creates and attaches a **new** `Task` for the next day (or next week) to the same pet, using `timedelta`. `ONCE` tasks generate nothing further. |
 | Next available slot *(stretch)* | `Scheduler.find_next_available_slot()` | Scans a day's tasks in order and returns the earliest gap (within a configurable day window) long enough for a new task of a given duration. |
 
@@ -223,7 +223,7 @@ owner = load_from_json("data.json")
 `Task.to_dict()` converts the `Priority`/`Frequency` enums to their names and the `time`/`date` fields to
 ISO strings so the result is plain-JSON-serializable; `from_dict()` reverses each of those conversions.
 `main.py`'s persistence demo saves the sample owner to `data.json`, then reloads it into a fresh `Owner`
-object and confirms the pet/task counts match — a full round trip. Files modified: `pawpal_system.py`
+object and confirms the pet/task counts match: a full round trip. Files modified: `pawpal_system.py`
 (new functions/methods), `main.py` (demo call), `tests/test_pawpal.py` (round-trip tests).
 
 ## 📸 Demo Walkthrough
@@ -239,7 +239,7 @@ daily schedule with conflict warnings.
 3. Select a pet from the dropdown, fill in a task's title, time, duration, priority, and frequency, then
    click **Add task**. Add a few tasks across both pets, including two that overlap in time.
 4. Use **Find next available slot** to see where a new task would fit without a conflict.
-5. Filter the task table by pet, then select a DAILY task and click **Mark complete** — notice the
+5. Filter the task table by pet, then select a DAILY task and click **Mark complete**. Notice the
    success message confirming a new task was created for tomorrow.
 6. (Optional) Enter a time budget in minutes so the scheduler trims the plan to fit.
 7. Click **Generate schedule** to see the prioritized plan, any skipped tasks, and any scheduling
@@ -248,7 +248,7 @@ daily schedule with conflict warnings.
 **Key Scheduler behaviors shown:** priority-then-time sorting, time-budget filtering, cross-pet conflict
 warnings, and automatic recurrence (a completed daily task spawning tomorrow's task).
 
-**Sample CLI output** (from `python main.py`) — see the [🖥️ Sample Output](#️-sample-output) section
+**Sample CLI output** (from `python main.py`): see the [🖥️ Sample Output](#️-sample-output) section
 above for the full fenced code block.
 
 **Screenshot or video** *(optional)*:
