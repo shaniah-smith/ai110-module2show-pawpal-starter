@@ -84,6 +84,7 @@ Output from `python main.py`, using a sample owner ("Jordan") with two pets (Bis
 cat). Tasks are added **out of order** on purpose to prove the sorting logic actually reorders them:
 
 ```
+
 📋 Today's Schedule for Jordan's pets
 ============================================================
 Time      Task                           Pet      Duration    Priority
@@ -103,8 +104,33 @@ Time      Task                           Pet      Duration    Priority
 ============================================================
 Before: Biscuit has 3 tasks
 Marked 'Morning walk' complete (frequency: daily)
--> Auto-created next occurrence for 2026-09-18 at 08:00 AM
+-> Auto-created next occurrence for 2026-10-02 at 08:00 AM
 After:  Biscuit has 4 tasks
+============================================================
+
+🔎 Sorting & filtering demo
+============================================================
+
+Today's tasks sorted by priority, then time:
+  2026-10-01  08:00 AM  Morning walk                   Biscuit  High    done
+  2026-10-01  08:30 AM  Breakfast                      Biscuit  High    pending
+  2026-10-01  09:00 AM  Heartworm medication           Biscuit  High    pending
+  2026-10-01  08:00 AM  Feeding                        Mochi    Medium  pending
+  2026-10-01  02:00 PM  Vet appointment check-in call  Mochi    Medium  pending
+  2026-10-01  09:30 AM  Litter box cleaning            Mochi    Low     pending
+
+Filter: Mochi's tasks only:
+  2026-10-01  08:00 AM  Feeding                        Mochi    Medium  pending
+  2026-10-01  09:30 AM  Litter box cleaning            Mochi    Low     pending
+  2026-10-01  02:00 PM  Vet appointment check-in call  Mochi    Medium  pending
+
+Filter: incomplete tasks only (today's completed walk is gone; tomorrow's remains):
+  2026-10-01  08:00 AM  Feeding                        Mochi    Medium  pending
+  2026-10-01  08:30 AM  Breakfast                      Biscuit  High    pending
+  2026-10-01  09:00 AM  Heartworm medication           Biscuit  High    pending
+  2026-10-01  09:30 AM  Litter box cleaning            Mochi    Low     pending
+  2026-10-01  02:00 PM  Vet appointment check-in call  Mochi    Medium  pending
+  2026-10-02  08:00 AM  Morning walk                   Biscuit  High    pending
 ============================================================
 
 🕒 Next available 20-minute slot (Challenge 1)
@@ -128,10 +154,10 @@ auto-creating tomorrow's walk for Biscuit, rather than just resetting a flag.
 
 ```
 # Run the full test suite:
-pytest
+python -m pytest
 
 # Run with coverage:
-pytest --cov
+python -m pytest --cov
 ```
 
 The suite (36 tests) covers:
@@ -150,9 +176,11 @@ Sample test output:
 
 ```
 ============================= test session starts ==============================
-platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
-rootdir: /home/claude/pawpal-plus
-collected 36 items
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0 -- /Users/shaniahsmith/Desktop/ai110-module2show-pawpal-starter/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/shaniahsmith/Desktop/ai110-module2show-pawpal-starter
+plugins: cov-7.1.0, anyio-4.15.1
+collecting ... collected 36 items
 
 tests/test_pawpal.py::TestTaskCompletion::test_mark_complete_changes_status PASSED [  2%]
 tests/test_pawpal.py::TestTaskCompletion::test_mark_incomplete_resets_status PASSED [  5%]
@@ -191,7 +219,7 @@ tests/test_pawpal.py::TestBuildDailyPlan::test_completed_tasks_excluded_from_pla
 tests/test_pawpal.py::TestBuildDailyPlan::test_build_daily_plan_respects_time_budget PASSED [ 97%]
 tests/test_pawpal.py::TestBuildDailyPlan::test_build_daily_plan_only_includes_matching_date PASSED [100%]
 
-============================== 36 passed in 0.04s ==============================
+============================== 36 passed in 0.03s ==============================
 ```
 
 **Confidence Level: ⭐⭐⭐⭐ (4/5)**
@@ -251,4 +279,3 @@ warnings, and automatic recurrence (a completed daily task spawning tomorrow's t
 **Sample CLI output** (from `python main.py`): see the [🖥️ Sample Output](#️-sample-output) section
 above for the full fenced code block.
 
-**Screenshot or video** *(optional)*:

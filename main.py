@@ -212,9 +212,35 @@ def demo_persistence(owner: Owner) -> None:
     print("=" * 60)
 
 
+def demo_sorting_and_filtering(owner: Owner) -> None:
+    """Demonstrate Phase 4 sorting and filtering methods."""
+    scheduler = Scheduler(owner)
+
+    def show(title, tasks):
+        print(f"\n{title}")
+        for t in tasks:
+            pet = owner.find_pet_for_task(t)
+            status = "done" if t.completed else "pending"
+            print(f"  {t.scheduled_date}  {t.scheduled_time.strftime('%I:%M %p')}  "
+                  f"{t.description:<30} {pet.name if pet else '?':<8} {str(t.priority):<7} {status}")
+
+    def by_date_time(tasks):
+        return sorted(tasks, key=lambda t: (t.scheduled_date, t.start_time_minutes()))
+
+    print("\n🔎 Sorting & filtering demo")
+    print("=" * 60)
+    today_tasks = scheduler.filter_by_date(date.today())
+    show("Today's tasks sorted by priority, then time:", scheduler.sort_by_priority_then_time(today_tasks))
+    show("Filter: Mochi's tasks only:", by_date_time(scheduler.filter_by_pet("Mochi")))
+    show("Filter: incomplete tasks only (today's completed walk is gone; tomorrow's remains):",
+         by_date_time(scheduler.filter_incomplete()))
+    print("=" * 60)
+
+
 if __name__ == "__main__":
     demo_owner = build_demo_owner()
     print_plan(demo_owner)
     demo_recurring_task_creation(demo_owner)
+    demo_sorting_and_filtering(demo_owner)
     demo_next_available_slot(demo_owner)
     demo_persistence(demo_owner)

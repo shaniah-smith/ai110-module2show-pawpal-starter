@@ -2,6 +2,12 @@
 
 ## 1. System Design
 
+**Core user actions**
+
+1. **Add a pet:** enter a pet's name and species so the app can track its care.
+2. **Schedule a care task:** add a walk, feeding, medication or appointment with a time, duration, priority, and whether it repeats daily or weekly.
+3. **See today's plan:** view the day's tasks in order, with warnings when two tasks overlap, and mark tasks complete.
+
 **a. Initial design**
 
 My initial UML design had four classes: `Owner`, `Pet`, `Task`, and `Scheduler`. `Owner` holds a list of
