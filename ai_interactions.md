@@ -38,7 +38,4 @@ first task (back-to-back tasks from day-start through lunch) so the assertion te
 
 ## Prompt Comparison (SF11)
 
-*(Not attempted. Challenge 5 requires running the same prompt through two different AI models/tools and
-comparing their output. I didn't have access to a second model in this environment to do an honest,
-non-fabricated comparison, so I left this section blank rather than invent output I never actually got
-from a second model.)*
+*(Not attempted.)* I didn't try this challenge. Doing it right would mean giving the same prompt to two different AI tools and comparing what each one gave back, and I only used one assistant for this project. I'd rather leave this section empty than write up a comparison I never actually ran.
